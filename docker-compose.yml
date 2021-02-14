@@ -23,9 +23,7 @@ services:
       - db
     build: ./.docker/wordpress
     volumes:
-      - wordpress:/var/www/html
-      - ./wp-content/themes:/var/www/html/wp-content/themes
-      - ./wp-content/plugins:/var/www/html/wp-content/plugins
+      - ./:/var/www/html
       - ./.docker/php/conf.d/custom.ini:/usr/local/etc/php/conf.d/custom.ini
       - ./.docker/php/conf.d/mail.ini:/usr/local/etc/php/conf.d/mail.ini
       - ./.docker/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
@@ -98,6 +96,5 @@ networks:
     external: true
 
 volumes:
-  wordpress:
   db_data:
     driver: local
