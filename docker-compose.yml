@@ -1,0 +1,103 @@
+version: "3.7"
+
+services:
+  traefik:
+    image: traefik:v1.7
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.docker/traefik/traefik.toml:/etc/traefik/traefik.toml
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.frontend.rule=Host:traefik.wordpress.local
+      - traefik.port=8080
+
+  wordpress:
+    depends_on:
+      - db
+    build: ./.docker/wordpress
+    volumes:
+      - wordpress:/var/www/html
+      - ./wp-content/themes:/var/www/html/wp-content/themes
+      - ./wp-content/plugins:/var/www/html/wp-content/plugins
+      - ./.docker/php/conf.d/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./.docker/php/conf.d/mail.ini:/usr/local/etc/php/conf.d/mail.ini
+      - ./.docker/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
+      - ./.docker/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: 0
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.docker.network=proxy
+      - traefik.enable=true
+      - traefik.frontend.rule=Host:wordpress.local
+      - traefik.port=80
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./.docker/mysql/conf.d:/etc/mysql/conf.d
+    ports:
+      - 127.0.0.1:3306:3306
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
+
+  adminer:
+    image: adminer
+    depends_on:
+      - db
+    restart: always
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.docker.network=proxy
+      - traefik.enable=true
+      - traefik.frontend.rule=Host:db.wordpress.local
+      - traefik.port=8080
+
+  mailhog:
+    image: mailhog/mailhog
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.docker.network=proxy
+      - traefik.enable=true
+      - traefik.frontend.rule=Host:mail.wordpress.local
+      - traefik.port=8025
+
+networks:
+  internal:
+    name: wordpress
+    ipam:
+      config:
+        - subnet: 10.102.0.0/16
+  proxy:
+    external: true
+
+volumes:
+  wordpress:
+  db_data:
+    driver: local

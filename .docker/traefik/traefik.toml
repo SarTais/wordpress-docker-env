@@ -1,0 +1,20 @@
+logLevel = "ERROR"
+defaultEntryPoints = ["http"]
+
+[entryPoints]
+[entryPoints.http]
+address = ":80"
+compress = true
+[entryPoints.traefik]
+address = ":8080"
+
+[api]
+entryPoint = "traefik"
+dashboard = true
+debug = true
+
+[docker]
+domain = "wordpress.local"
+watch = true
+exposedByDefault = false
+network = "proxy"
