@@ -48,6 +48,19 @@ try the following command instead that uses a subnet most likely not in use on y
 docker network create --subnet=10.100.0.0/16 --ip-range=10.100.0.0/24 proxy
 ```
 
+### PHP Configuration
+
+Configuration files for PHP are located in the folder `.docker/php/conf.d`.
+You can change existing settings in the appropriate files or add new ones to the `./docker/php/conf.d/custom.ini` file.
+
+Don't forget to restart the container to make the change take effect.
+
+### MySQL Configuration
+
+Configuration file for MySQL is location in the folder `.docker/mysql/conf.d/mysql.cnf`. You can add the settings you need to it.
+
+Don't forget to restart the container to make the change take effect.
+
 ### Hosts Configuration
 
 #### Linux
